@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?  // Optional for OAuth
+  role      String   @default("STUDENT") // ADMIN, STUDENT
+  stars     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  results     Result[]
+  messages    Message[]
+  progress    Progress[]
+  purchases   Purchase[]
+  enrollments Enrollment[]
+}
+
+model Package {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  features    String? 
+  
+  courseLimit Int?     // [NEW] Max courses user can enroll in (null = unlimited)
+  enableInstructorChat  Boolean  @default(false) // [Renamed]
+  enableUserChat        Boolean  @default(false) // [NEW]
+  
+  courses     Course[]
+  purchases   Purchase[]
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packageId String?
+  package   Package? @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  courseId  String?
+  course    Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  amount    Float    @default(0)
+  status    String   @default("COMPLETED") // COMPLETED, PENDING, FAILED
+  paymentId String?
+  paymentToken String?
+  createdAt DateTime @default(now())
+
+  // Separate unique constraints or remove if user can buy multiple times (e.g. gifts)? 
+  // For now let's keep it simple: One purchase per item type per user usually.
+  // But unique constraints in Prisma with optional fields can be tricky in some DBs, but SQLite/Postgres handle multiple nulls differently.
+  // Standard way: Remove compound unique and handle in app logic, OR keep separate.
+  // We'll trust app logic for now to prevent double buys.
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?  // [NEW] Course Cover Image
+  price       Float    @default(0)
+  rating      Float    @default(0) // [NEW] Average Rating
+  instructor  String?  // [NEW] Instructor Name
+  
+  packageId   String?
+  package     Package? @relation(fields: [packageId], references: [id])
+  
+  categoryId  String?  // [NEW] Category Relation
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  enrollments Enrollment[] // [NEW]
+  purchases   Purchase[]   // [NEW] Single Course Purchases
+  
+  learningOutcomes LearningOutcome[] // [NEW] Dynamic Learning Points
+  lessons     Lesson[]
+  exams       Exam[]
+  materials   Material[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LearningOutcome {
+  id        String @id @default(cuid())
+  text      String
+  courseId  String
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id    String   @id @default(cuid())
+  name  String   @unique
+  slug  String   @unique
+  courses Course[]
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  videoUrl  String?
+  order     Int
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  progress  Progress[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  title     String
+  fileUrl   String
+  type      String   // PDF, DOCX, etc.
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  title     String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  questions Question[]
+  results   Result[]
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  text          String
+  options       String   // JSON string of options ["A", "B", "C", "D"]
+  correctAnswer String
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  score     Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Progress {
+  id        String   @id @default(cuid())
+  isCompleted Boolean @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  type      String   @default("COMMUNITY") // COMMUNITY, INSTRUCTOR
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}

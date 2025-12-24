@@ -125,12 +125,12 @@ export default async function DashboardLayout({
                     </Link>
                 </header>
 
-                <main className="flex-1 overflow-auto p-4 md:p-6 bg-gray-50/50 dark:bg-background">
+                <main className="flex-1 overflow-auto p-4 md:p-6 bg-gray-50/50 dark:bg-background pb-24 md:pb-6">
                     {children}
                 </main>
 
                 {/* Mobile Bottom Nav */}
-                <nav className="border-t-0 bg-primary text-primary-foreground md:hidden rounded-t-3xl shadow-[0_-5px_10px_rgba(0,0,0,0.1)] pb-2 pt-2">
+                <nav className="fixed bottom-0 left-0 right-0 z-50 border-t-0 bg-primary text-primary-foreground md:hidden rounded-t-3xl shadow-[0_-5px_10px_rgba(0,0,0,0.1)] pb-2 pt-2">
                     <div className="flex justify-around p-2 items-center">
                         <Link
                             href="/"

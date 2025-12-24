@@ -53,6 +53,29 @@ export default async function ProfilePage() {
                         <h2 className="text-xl font-bold">{user.name}</h2>
                         <p className="text-sm text-muted-foreground">{user.email}</p>
 
+                        {/* Package Badges */}
+                        <div className="flex flex-wrap gap-2 justify-center mt-2">
+                            {user.purchases.filter(p => p.package).map(p => {
+                                const pkgName = p.package!.name
+                                const lowerName = pkgName.toLowerCase()
+                                let colorClass = "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+
+                                if (lowerName.includes("pro") || lowerName.includes("plus")) {
+                                    colorClass = "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
+                                } else if (lowerName.includes("premium")) {
+                                    colorClass = "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
+                                } else if (lowerName.includes("standart") || lowerName.includes("gold")) {
+                                    colorClass = "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800"
+                                }
+
+                                return (
+                                    <span key={p.id} className={`px-2 py-0.5 rounded-md text-xs font-bold border ${colorClass}`}>
+                                        {pkgName}
+                                    </span>
+                                )
+                            })}
+                        </div>
+
                         <div className="mt-4 flex items-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-2 rounded-full border border-yellow-200 dark:border-yellow-800">
                             <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                             <span className="font-bold text-yellow-700 dark:text-yellow-400">{user.stars} Yıldız</span>

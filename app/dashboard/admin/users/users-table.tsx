@@ -108,10 +108,11 @@ export function UsersTable({ initialUsers }: { initialUsers: User[] }) {
                                                 <span className="flex-1">{p.package ? p.package.name : p.course?.title}</span>
                                                 <button
                                                     onClick={() => handleRevokePurchase(p.id)}
-                                                    className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors"
+                                                    className="flex items-center gap-1 text-red-500 hover:bg-red-50 px-2 py-0.5 rounded transition-colors text-xs font-medium border border-red-200"
                                                     title="Erişimi Kaldır"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-3 w-3" />
+                                                    Paket Sil
                                                 </button>
                                             </div>
                                         ))}

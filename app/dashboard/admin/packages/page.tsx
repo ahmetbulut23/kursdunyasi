@@ -1,4 +1,5 @@
 import { SeedPackagesButton } from "./seed-button"
+import { DeletePackageButton } from "./delete-button"
 
 // ... (imports remain same)
 
@@ -66,32 +67,28 @@ export default async function AdminPackagesPage() {
                                     </td>
                                 </tr>
                             )}
-                            {packages.map((pkg: any) => (
-                                <tr key={pkg.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                    <td className="p-4 align-middle font-medium">{pkg.name}</td>
-                                    <td className="p-4 align-middle">₺{pkg.price}</td>
-                                    <td className="p-4 align-middle">{pkg.courses?.length || 0} Kurs</td>
-                                    <td className="p-4 align-middle">{pkg._count?.purchases || 0}</td>
-                                    <td className="p-4 align-middle">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Link href={`/dashboard/admin/packages/${pkg.id}`}>
-                                                <Button variant="outline" size="sm">
-                                                    <Edit className="mr-2 h-4 w-4" />
-                                                    Düzenle
-                                                </Button>
-                                            </Link>
-                                            <form action={async () => {
-                                                'use server'
-                                                await deletePackage(pkg.id)
-                                            }}>
-                                                <Button variant="destructive" size="sm" type="submit">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            {packages.map((pkg: any) => {
+                                if (!pkg) return null;
+                                return (
+                                    <tr key={pkg.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                                        <td className="p-4 align-middle font-medium">{pkg.name}</td>
+                                        <td className="p-4 align-middle">₺{pkg.price}</td>
+                                        <td className="p-4 align-middle">{pkg.courses?.length || 0} Kurs</td>
+                                        <td className="p-4 align-middle">{pkg._count?.purchases || 0}</td>
+                                        <td className="p-4 align-middle">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Link href={`/dashboard/admin/packages/${pkg.id}`}>
+                                                    <Button variant="outline" size="sm">
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Düzenle
+                                                    </Button>
+                                                </Link>
+                                                <DeletePackageButton packageId={pkg.id} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -99,3 +96,4 @@ export default async function AdminPackagesPage() {
         </div>
     )
 }
+

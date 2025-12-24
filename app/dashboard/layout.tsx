@@ -1,19 +1,19 @@
-import Link from "next/link"
-import { BookOpen, Trophy, MessageCircle, User, Settings, Home, Shield } from "lucide-react"
-import { auth } from "@/auth"
-import { PaymentSuccessPopup } from "@/components/payment-success-popup"
+import { Suspense } from "react"
+
+// ... imports
 
 export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const session = await auth()
-    const isAdmin = (session?.user as any)?.role === "ADMIN"
+    // ...
 
     return (
         <div className="flex h-screen w-full flex-col md:flex-row">
-            <PaymentSuccessPopup />
+            <Suspense fallback={null}>
+                <PaymentSuccessPopup />
+            </Suspense>
             {/* Desktop Sidebar */}
             <aside className="hidden w-64 border-r bg-primary text-primary-foreground md:block">
                 <div className="flex h-14 items-center border-b border-primary-foreground/10 px-4">

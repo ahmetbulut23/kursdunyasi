@@ -21,7 +21,7 @@ async function checkChatPermissions(userId: string) {
     if (user.role === 'ADMIN') return { canUserChat: true, canInstructorChat: true }
 
     const activePurchase = user.purchases[0]
-    if (!activePurchase) return { canUserChat: false, canInstructorChat: false }
+    if (!activePurchase || !activePurchase.package) return { canUserChat: false, canInstructorChat: false }
 
     return {
         canUserChat: activePurchase.package.enableUserChat,

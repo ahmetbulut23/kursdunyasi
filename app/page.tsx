@@ -16,7 +16,7 @@ export default async function Home() {
       }
     },
     orderBy: { createdAt: 'desc' },
-    take: 8 // Limit for homepage
+    // take: 8 // Show all courses as requested
   })
 
   return (
@@ -94,7 +94,7 @@ export default async function Home() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {courses.map((course: any) => (
-              <Link href={`/dashboard/courses/${course.id}`} key={course.id} className="group flex flex-col h-full bg-card border rounded-xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+              <Link href={`/dashboard/courses/${course.id}`} key={course.id} className="group flex flex-col h-full bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all hover:scale-[1.01]">
                 {/* Image Container */}
                 <div className="relative aspect-video w-full bg-gray-200 dark:bg-gray-800">
                   {course.imageUrl ? (
@@ -108,6 +108,12 @@ export default async function Home() {
                       <PlayCircle className="h-12 w-12" />
                     </div>
                   )}
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span className="text-white text-sm font-medium flex items-center gap-1">
+                      <PlayCircle className="h-4 w-4" /> Kursu İncele
+                    </span>
+                  </div>
                 </div>
 
                 {/* Content */}
@@ -144,6 +150,11 @@ export default async function Home() {
                     <span className="text-lg font-bold">
                       {course.price > 0 ? `₺${course.price}` : 'Ücretsiz'}
                     </span>
+                    {course._count.lessons > 0 && course.category && (
+                      <span className="text-[10px] uppercase tracking-wider font-semibold bg-secondary px-2 py-1 rounded text-secondary-foreground">
+                        {course.category.name}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>

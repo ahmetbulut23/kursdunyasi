@@ -90,60 +90,71 @@ export async function purchasePackage(packageId: string) {
 }
 
 // Buy a specific course directly
+// Buy a specific course directly
 export async function buyCourse(courseId: string) {
     console.log("buyCourse: Started for courseId", courseId);
-    console.log("buyCourse: NEXTAUTH_URL env:", process.env.NEXTAUTH_URL);
+
+    // Validate Environment URL
+    let baseUrl = process.env.NEXTAUTH_URL;
+    if (!baseUrl) {
+        console.warn("buyCourse: NEXTAUTH_URL is missing, falling back to VERCEL_URL");
+        baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    }
+
+    console.log("buyCourse: effective Base URL:", baseUrl);
 
     let session;
     try {
         session = await auth();
-        console.log("buyCourse: Session retrieved", session?.user?.id);
     } catch (authErr) {
         console.error("buyCourse: Auth Error", authErr);
-        return { error: "Authentication check failed" };
+        return { error: "Kimlik doğrulama hatası. Lütfen tekrar giriş yapın." };
     }
 
-    if (!session?.user?.id) return { error: "Giriş yapmalısınız" }
+    if (!session?.user?.id) return { error: "Satın alma işlemi için giriş yapmalısınız." }
 
-    const course = await db.course.findUnique({ where: { id: courseId } })
-    if (!course) return { error: "Kurs bulunamadı" }
-
-    // Check if already enrolled or purchased
-    const existingEnrollment = await db.enrollment.findUnique({
-        where: {
-            userId_courseId: {
-                userId: session.user.id,
-                courseId: courseId
-            }
-        }
-    })
-    if (existingEnrollment) return { error: "Zaten bu kursa sahipsiniz" }
-
-    // 1. Create Pending Purchase
-    const purchase = await db.purchase.create({
-        data: {
-            userId: session.user.id,
-            courseId: courseId,
-            amount: course.price,
-            status: "PENDING"
-        }
-    })
-
-    // 2. Init Iyzico
     try {
-        let baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-        baseUrl = baseUrl.trim();
+        const course = await db.course.findUnique({ where: { id: courseId } })
+        if (!course) return { error: "Kurs bulunamadı." }
+
+        // Check if already enrolled or purchased
+        const existingEnrollment = await db.enrollment.findUnique({
+            where: {
+                userId_courseId: {
+                    userId: session.user.id,
+                    courseId: courseId
+                }
+            }
+        })
+        if (existingEnrollment) return { error: "Zaten bu kursa sahipsiniz." }
+
+        // 1. Create Pending Purchase
+        const purchase = await db.purchase.create({
+            data: {
+                userId: session.user.id,
+                courseId: courseId,
+                amount: course.price,
+                status: "PENDING"
+            }
+        })
+
+        // 2. Init Iyzico with Timeout
         const callbackUrl = `${baseUrl}/api/payment/callback`;
 
-        const result: any = await initializePayment({
+        // Helper for timeout
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Ödeme servisi zaman aşımına uğradı (15s)")), 15000)
+        );
+
+        const paymentPromise = initializePayment({
             price: course.price,
             paidPrice: course.price,
             basketId: purchase.id,
             callbackUrl: callbackUrl,
             buyer: {
                 id: session.user.id,
-                name: session.user.name || "Guest",
-                surname: "User",
+                name: session.user.name || "Misafir",
+                surname: "Kullanici",
                 email: session.user.email || "email@example.com",
                 identityNumber: "11111111111",
                 address: "Online Course Platform",
@@ -157,8 +168,12 @@ export async function buyCourse(courseId: string) {
                 category: "Online Course",
                 price: course.price
             }]
-        })
+        });
 
+        // Race against timeout
+        const result: any = await Promise.race([paymentPromise, timeoutPromise]);
+
+        console.log("Iyzico Result:", JSON.stringify(result, null, 2));
 
         if (result.status === "success" && result.paymentPageUrl) {
             await db.purchase.update({
@@ -167,11 +182,13 @@ export async function buyCourse(courseId: string) {
             })
             return { redirectUrl: result.paymentPageUrl }
         } else {
+            console.error("Iyzico Initialization Failed:", result);
             return { error: "Ödeme başlatılamadı: " + (result.errorMessage || "Bilinmeyen hata") }
         }
 
-    } catch (err) {
-        return { error: "Sistem hatası" }
+    } catch (err: any) {
+        console.error("buyCourse System Error:", err);
+        return { error: "İşlem sırasında bir hata oluştu: " + (err.message || "Bilinmeyen hata") }
     }
 }
 

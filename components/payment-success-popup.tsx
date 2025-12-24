@@ -62,7 +62,7 @@ export function PaymentSuccessPopup() {
                 <div className="flex flex-col items-center justify-center space-y-2 py-4">
                     <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-lg w-full justify-center">
                         <Trophy className="h-5 w-5 text-yellow-500" />
-                        <span className="font-medium">Pro Özellikler Açıldı</span>
+                        <span className="font-medium">{searchParams.get("itemName") || "Pro Özellikler"} Açıldı</span>
                     </div>
                 </div>
                 <DialogFooter className="sm:justify-center">

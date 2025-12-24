@@ -69,10 +69,20 @@ export async function POST(req: NextRequest) {
             }
 
             // Redirect to success page (or dashboard with param)
+            let redirectUrl = "";
+            let itemName = "";
+
             if (purchase.courseId) {
-                return NextResponse.redirect(new URL(`/dashboard/courses/${purchase.courseId}?payment=success`, baseUrl), { status: 303 });
+                itemName = purchase.course?.title || "Kurs";
+                redirectUrl = `/dashboard/courses/${purchase.courseId}?payment=success&itemName=${encodeURIComponent(itemName)}`;
+            } else if (purchase.packageId) {
+                itemName = purchase.package?.name || "Paket";
+                redirectUrl = `/dashboard?payment=success&itemName=${encodeURIComponent(itemName)}`;
+            } else {
+                redirectUrl = `/dashboard?payment=success`;
             }
-            return NextResponse.redirect(new URL("/dashboard?payment=success", baseUrl), { status: 303 });
+
+            return NextResponse.redirect(new URL(redirectUrl, baseUrl), { status: 303 });
 
         } else {
             // Payment Failed

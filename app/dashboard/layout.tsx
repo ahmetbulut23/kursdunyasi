@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { BookOpen, Trophy, MessageCircle, User, Settings, Home, Shield } from "lucide-react"
 import { auth } from "@/auth"
+import { PaymentSuccessPopup } from "@/components/payment-success-popup"
 
 export default async function DashboardLayout({
     children,
@@ -12,6 +13,7 @@ export default async function DashboardLayout({
 
     return (
         <div className="flex h-screen w-full flex-col md:flex-row">
+            <PaymentSuccessPopup />
             {/* Desktop Sidebar */}
             <aside className="hidden w-64 border-r bg-primary text-primary-foreground md:block">
                 <div className="flex h-14 items-center border-b border-primary-foreground/10 px-4">

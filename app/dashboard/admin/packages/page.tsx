@@ -1,12 +1,30 @@
 import { SeedPackagesButton } from "./seed-button"
 
+// ... (imports remain same)
+
 export default async function AdminPackagesPage() {
     const session = await auth()
     if ((session?.user as any)?.role !== "ADMIN") {
         return <div>Yetkisiz Erişim</div>
     }
 
-    const packages = await getAdminPackages()
+    let packages: any[] = []
+    let error = null
+
+    try {
+        packages = await getAdminPackages()
+        if (!Array.isArray(packages)) {
+            console.error("Packages is not an array:", packages)
+            packages = []
+        }
+    } catch (err) {
+        console.error("Failed to fetch packages:", err)
+        error = "Paketler yüklenirken bir hata oluştu."
+    }
+
+    if (error) {
+        return <div className="p-4 text-red-500 bg-red-50 rounded-lg">{error}</div>
+    }
 
     return (
         <div className="space-y-6">
@@ -52,8 +70,8 @@ export default async function AdminPackagesPage() {
                                 <tr key={pkg.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                     <td className="p-4 align-middle font-medium">{pkg.name}</td>
                                     <td className="p-4 align-middle">₺{pkg.price}</td>
-                                    <td className="p-4 align-middle">{pkg.courses.length} Kurs</td>
-                                    <td className="p-4 align-middle">{pkg._count.purchases}</td>
+                                    <td className="p-4 align-middle">{pkg.courses?.length || 0} Kurs</td>
+                                    <td className="p-4 align-middle">{pkg._count?.purchases || 0}</td>
                                     <td className="p-4 align-middle">
                                         <div className="flex items-center justify-end gap-2">
                                             <Link href={`/dashboard/admin/packages/${pkg.id}`}>

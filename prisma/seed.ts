@@ -199,21 +199,89 @@ async function main() {
         } else {
             console.log(`Skipped existing course: ${courseData.title}`)
         }
+    } else {
+        console.log(`Skipped existing course: ${courseData.title}`)
     }
+}
 
-    // Create Admin User
-    const admin = await prisma.user.upsert({
-        where: { email: 'admin@example.com' },
-        update: {},
-        create: {
-            email: 'admin@example.com',
-            name: 'Admin User',
-            role: 'ADMIN',
-            password: 'password123'
-        }
-    })
+// 4. Create Packages
+const packages = [
+    {
+        name: 'Başlangıç Paketi',
+        description: 'Tek bir kursa odaklanmak isteyenler için ideal.',
+        price: 150.00,
+        courseLimit: 1,
+        enableUserChat: false,
+        enableInstructorChat: false,
+        features: JSON.stringify([
+            { text: "1 Kurs Hakkı", valid: true },
+            { text: "Temel Derslere Erişim", valid: true },
+            { text: "Sertifika", valid: true },
+            { text: "Eğitmen Desteği", valid: false },
+            { text: "Topluluk Sohbeti", valid: false }
+        ])
+    },
+    {
+        name: 'Standart Paket',
+        description: 'Birden fazla alanda kendini geliştirmek isteyenler için.',
+        price: 350.00,
+        courseLimit: 5,
+        enableUserChat: true,
+        enableInstructorChat: false,
+        features: JSON.stringify([
+            { text: "5 Kurs Hakkı", valid: true },
+            { text: "Öğrenci Topluluğu", valid: true },
+            { text: "Sertifika", valid: true },
+            { text: "Eğitmen Desteği", valid: false },
+            { text: "Tüm Materyaller", valid: true }
+        ])
+    },
+    {
+        name: 'Pro Üyelik',
+        description: 'Sınırsız öğrenme ve eğitmen desteği ile kariyerinizi zirveye taşıyın.',
+        price: 750.00,
+        courseLimit: null, // Unlimited
+        enableUserChat: true,
+        enableInstructorChat: true,
+        features: JSON.stringify([
+            { text: "Sınırsız Kurs Hakkı", valid: true },
+            { text: "Eğitmenle Sohbet", valid: true },
+            { text: "Öncelikli Destek", valid: true },
+            { text: "Kariyer Danışmanlığı", valid: true },
+            { text: "VIP Topluluk", valid: true }
+        ])
+    }
+];
 
-    console.log(`Seed completed. Admin: ${admin.email}`)
+for (const pkg of packages) {
+    const existingPkg = await prisma.package.findFirst({ where: { name: pkg.name } });
+    if (!existingPkg) {
+        await prisma.package.create({
+            data: {
+                name: pkg.name,
+                description: pkg.description,
+                price: pkg.price,
+                courseLimit: pkg.courseLimit,
+                enableUserChat: pkg.enableUserChat,
+                enableInstructorChat: pkg.enableInstructorChat,
+                features: pkg.features
+            }
+        })
+        console.log(`Created package: ${pkg.name}`)
+    }
+}
+const admin = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+        email: 'admin@example.com',
+        name: 'Admin User',
+        role: 'ADMIN',
+        password: 'password123'
+    }
+})
+
+console.log(`Seed completed. Admin: ${admin.email}`)
 }
 
 main()

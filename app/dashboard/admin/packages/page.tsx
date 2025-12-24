@@ -1,8 +1,4 @@
-import { auth } from "@/auth"
-import { getAdminPackages, deletePackage } from "@/app/actions/admin-actions"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Plus, Edit, Trash2 } from "lucide-react"
+import { SeedPackagesButton } from "./seed-button"
 
 export default async function AdminPackagesPage() {
     const session = await auth()
@@ -21,12 +17,15 @@ export default async function AdminPackagesPage() {
                         Paketleri oluşturun, fiyatlarını ve özelliklerini düzenleyin.
                     </p>
                 </div>
-                <Link href="/dashboard/admin/packages/new">
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Yeni Paket Ekle
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    <SeedPackagesButton />
+                    <Link href="/dashboard/admin/packages/new">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Yeni Paket Ekle
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <div className="rounded-xl border bg-card text-card-foreground shadow">

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BookOpen, Trophy, MessageCircle, User, Settings, Home, Shield } from "lucide-react"
 import { auth } from "@/auth"
 import { PaymentSuccessPopup } from "@/components/payment-success-popup"
+import { MobileAdminMenu } from "@/components/mobile-admin-menu"
 import { Suspense } from "react"
 
 export default async function DashboardLayout({
@@ -120,6 +121,7 @@ export default async function DashboardLayout({
             <div className="flex flex-1 flex-col overflow-hidden">
                 {/* Mobile Header */}
                 <header className="flex h-16 items-center gap-4 bg-primary text-primary-foreground px-6 shadow-md md:hidden rounded-b-3xl">
+                    {isAdmin && <MobileAdminMenu />}
                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
                         <span className="">Kurs Dünyası</span>
                     </Link>

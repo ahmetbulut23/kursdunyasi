@@ -427,3 +427,65 @@ export async function deleteMaterial(materialId: string) {
         return { error: "Failed to delete material" }
     }
 }
+
+// User Management Actions
+
+export async function getUsers() {
+    const session = await auth()
+    if ((session?.user as any)?.role !== "ADMIN") return []
+
+    return await db.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            purchases: {
+                where: { status: "COMPLETED" },
+                select: {
+                    package: { select: { name: true } },
+                    course: { select: { title: true } }
+                }
+            }
+        }
+    })
+}
+
+export async function updateUserRole(userId: string, newRole: string) {
+    const session = await auth()
+    if ((session?.user as any)?.role !== "ADMIN") return { error: "Unauthorized" }
+
+    // Prevent removing own admin status
+    if (userId === session?.user?.id && newRole !== "ADMIN") {
+        return { error: "Cannot change your own role" }
+    }
+
+    try {
+        await db.user.update({
+            where: { id: userId },
+            data: { role: newRole }
+        })
+        return { success: "User role updated" }
+    } catch (err) {
+        return { error: "Failed to update user role" }
+    }
+}
+
+export async function deleteUser(userId: string) {
+    const session = await auth()
+    if ((session?.user as any)?.role !== "ADMIN") return { error: "Unauthorized" }
+
+    // Prevent deleting self
+    if (userId === session?.user?.id) {
+        return { error: "Cannot delete yourself" }
+    }
+
+    try {
+        await db.user.delete({ where: { id: userId } })
+        return { success: "User deleted" }
+    } catch (err) {
+        return { error: "Failed to delete user" }
+    }
+}

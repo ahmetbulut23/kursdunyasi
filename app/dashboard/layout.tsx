@@ -120,7 +120,7 @@ export default async function DashboardLayout({
             {/* Main Content */}
             <div className="flex flex-1 flex-col overflow-hidden">
                 {/* Mobile Header */}
-                <header className="flex h-16 items-center gap-4 bg-primary text-primary-foreground px-6 shadow-md md:hidden rounded-b-3xl">
+                <header className="sticky top-0 z-50 flex h-16 items-center gap-4 bg-primary text-primary-foreground px-6 shadow-md md:hidden rounded-b-3xl">
                     {isAdmin && <MobileAdminMenu />}
                     <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
                         <span className="">Kurs Dünyası</span>

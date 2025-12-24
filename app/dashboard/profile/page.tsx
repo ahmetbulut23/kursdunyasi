@@ -1,6 +1,6 @@
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
-import { Star, Calendar, User as UserIcon, LogOut } from "lucide-react"
+import { Star, Calendar, User as UserIcon, LogOut, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/auth"
 // Note: signOut is server-side action? No, typically client or via form action. 
@@ -18,6 +18,14 @@ export default async function ProfilePage() {
                 orderBy: { createdAt: 'desc' },
                 take: 5,
                 include: { exam: true }
+            },
+            purchases: {
+                orderBy: { createdAt: 'desc' },
+                where: { status: 'COMPLETED' },
+                include: {
+                    package: true,
+                    course: true
+                }
             }
         }
     })
@@ -74,6 +82,37 @@ export default async function ProfilePage() {
 
                 {/* Activity / Stats */}
                 <div className="md:col-span-2 space-y-6">
+                    {/* Purchases Card */}
+                    <div className="p-6 rounded-xl border bg-card">
+                        <h3 className="font-semibold mb-4">Satın Alınan Paketler & Kurslar</h3>
+                        {user.purchases.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Henüz aktif bir satın alım bulunmuyor.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {user.purchases.map((p) => {
+                                    const itemName = p.package ? p.package.name : p.course?.title
+                                    const type = p.package ? "Paket" : "Kurs"
+                                    return (
+                                        <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border bg-green-50/50 dark:bg-green-900/20 border-green-100 dark:border-green-900">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-600 dark:text-green-400">
+                                                    <Trophy className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-sm">{itemName}</p>
+                                                    <p className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()} tarihinde alındı</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs font-semibold px-2 py-1 rounded bg-white dark:bg-black/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                                                {type}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="p-6 rounded-xl border bg-card">
                         <h3 className="font-semibold mb-4">Son Sınav Sonuçları</h3>
                         {user.results.length === 0 ? (

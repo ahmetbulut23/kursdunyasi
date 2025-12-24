@@ -1,6 +1,6 @@
 'use client'
 
-import { deleteUser, updateUserRole } from "@/app/actions/admin-actions"
+import { deleteUser, updateUserRole, revokePurchase } from "@/app/actions/admin-actions"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -16,6 +16,7 @@ interface User {
     role: string
     createdAt: Date
     purchases: {
+        id: string
         package: { name: string } | null
         course: { title: string } | null
     }[]
@@ -53,6 +54,20 @@ export function UsersTable({ initialUsers }: { initialUsers: User[] }) {
         })
     }
 
+    const handleRevokePurchase = (purchaseId: string) => {
+        if (!confirm("Bu paket/kurs erişimini iptal etmek istediğinize emin misiniz?")) return;
+
+        startTransition(async () => {
+            const res = await revokePurchase(purchaseId)
+            if (res.success) {
+                toast.success("Erişim kaldırıldı")
+                router.refresh()
+            } else {
+                toast.error(res.error)
+            }
+        })
+    }
+
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -76,8 +91,8 @@ export function UsersTable({ initialUsers }: { initialUsers: User[] }) {
                             </td>
                             <td className="px-6 py-4">
                                 <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${user.role === 'ADMIN'
-                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                                     }`}>
                                     {user.role}
                                 </span>
@@ -88,9 +103,16 @@ export function UsersTable({ initialUsers }: { initialUsers: User[] }) {
                                 ) : (
                                     <div className="space-y-1">
                                         {user.purchases.map((p, i) => (
-                                            <div key={i} className="text-xs flex items-center gap-1">
+                                            <div key={i} className="text-xs flex items-center gap-1 group">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                                                {p.package ? p.package.name : p.course?.title}
+                                                <span className="flex-1">{p.package ? p.package.name : p.course?.title}</span>
+                                                <button
+                                                    onClick={() => handleRevokePurchase(p.id)}
+                                                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50 p-0.5 rounded transition-opacity"
+                                                    title="Erişimi Kaldır"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
                                             </div>
                                         ))}
                                     </div>

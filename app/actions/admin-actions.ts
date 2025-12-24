@@ -430,6 +430,8 @@ export async function deleteMaterial(materialId: string) {
 
 // User Management Actions
 
+// ... (previous imports)
+
 export async function getUsers() {
     const session = await auth()
     if ((session?.user as any)?.role !== "ADMIN") return []
@@ -445,6 +447,7 @@ export async function getUsers() {
             purchases: {
                 where: { status: "COMPLETED" },
                 select: {
+                    id: true,
                     package: { select: { name: true } },
                     course: { select: { title: true } }
                 }
@@ -453,25 +456,7 @@ export async function getUsers() {
     })
 }
 
-export async function updateUserRole(userId: string, newRole: string) {
-    const session = await auth()
-    if ((session?.user as any)?.role !== "ADMIN") return { error: "Unauthorized" }
-
-    // Prevent removing own admin status
-    if (userId === session?.user?.id && newRole !== "ADMIN") {
-        return { error: "Cannot change your own role" }
-    }
-
-    try {
-        await db.user.update({
-            where: { id: userId },
-            data: { role: newRole }
-        })
-        return { success: "User role updated" }
-    } catch (err) {
-        return { error: "Failed to update user role" }
-    }
-}
+// ... (other functions)
 
 export async function deleteUser(userId: string) {
     const session = await auth()
@@ -487,5 +472,27 @@ export async function deleteUser(userId: string) {
         return { success: "User deleted" }
     } catch (err) {
         return { error: "Failed to delete user" }
+    }
+}
+
+export async function revokePurchase(purchaseId: string) {
+    const session = await auth()
+    if ((session?.user as any)?.role !== "ADMIN") return { error: "Unauthorized" }
+
+    try {
+        const purchase = await db.purchase.findUnique({ where: { id: purchaseId } })
+        if (purchase?.courseId) {
+            await db.enrollment.deleteMany({
+                where: {
+                    userId: purchase.userId,
+                    courseId: purchase.courseId
+                }
+            })
+        }
+
+        await db.purchase.delete({ where: { id: purchaseId } })
+        return { success: "Purchase revoked" }
+    } catch (err) {
+        return { error: "Failed to revoke purchase" }
     }
 }

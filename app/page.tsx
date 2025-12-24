@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/db"
+import { auth } from "@/auth"
 import { PlayCircle, Star, Clock, ChevronRight } from "lucide-react"
 
 export default async function Home() {
+  const session = await auth()
   const categories = await db.category.findMany({
     orderBy: { name: 'asc' }
   });
@@ -33,12 +35,24 @@ export default async function Home() {
               <Link href="#" className="hover:text-primary transition-colors">Eğitmenler</Link>
               <Link href="#" className="hover:text-primary transition-colors">Hakkımızda</Link>
             </nav>
-            <Link href="/login">
-              <Button variant="ghost">Giriş Yap</Button>
-            </Link>
-            <Link href="/register">
-              <Button>Kayıt Ol</Button>
-            </Link>
+            {session?.user ? (
+              <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background hover:bg-muted transition-colors">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span className="font-medium text-sm">{session.user.name || "Kullanıcı"}</span>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Giriş Yap</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>Kayıt Ol</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
